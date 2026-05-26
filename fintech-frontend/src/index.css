@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.025), 0 10px 32px rgba(15, 23, 42, 0.045);
+  --font-sans: "Plus Jakarta Sans", "Inter", Arial, sans-serif;
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #15221e;
+  --card: #ffffff;
+  --card-foreground: #15221e;
+  --primary: #164c43;
+  --primary-foreground: #f5fcfa;
+  --muted: #f3f7f5;
+  --muted-foreground: #667872;
+  --border: #e5eeea;
+  --input: #dbe6e2;
+  --ring: #2a8273;
+}
+
+* {
+  border-color: var(--border);
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  cursor: pointer;
+}
+
+.brand-mark,
+.brand-mark-light {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  border-radius: 0.9rem;
+  background: var(--primary);
+  color: white;
+}
+
+.brand-mark-light {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.transaction-in,
+.transaction-out {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+  place-items: center;
+  border-radius: 0.75rem;
+}
+
+.transaction-in {
+  background: #e5f7ef;
+  color: #059669;
+}
+
+.transaction-out {
+  background: #fff1ed;
+  color: #e65e42;
+}
