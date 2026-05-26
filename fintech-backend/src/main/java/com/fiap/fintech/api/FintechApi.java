@@ -3,6 +3,7 @@ package com.fiap.fintech.api;
 import com.fiap.fintech.api.dto.ApiDtos.ApiError;
 import com.fiap.fintech.api.dto.ApiDtos.HealthResponse;
 import com.fiap.fintech.api.dto.ApiDtos.LoginRequest;
+import com.fiap.fintech.config.Environment;
 import com.fiap.fintech.exception.EntidadeNaoEncontrada;
 import com.fiap.fintech.service.FintechService;
 
@@ -17,7 +18,7 @@ public final class FintechApi {
     }
 
     public static Javalin create(FintechService service) {
-        String frontendOrigin = env("FRONTEND_ORIGIN", "http://localhost:5173");
+        String frontendOrigin = Environment.get("FRONTEND_ORIGIN", "http://localhost:5173");
 
         return Javalin.create(config -> {
             config.bundledPlugins.enableCors(cors -> cors.addRule(rule -> rule.allowHost(frontendOrigin)));
@@ -68,10 +69,5 @@ public final class FintechApi {
 
     private static int userId(Context context) {
         return Integer.parseInt(context.pathParam("userId"));
-    }
-
-    private static String env(String key, String defaultValue) {
-        String value = System.getenv(key);
-        return value == null || value.isBlank() ? defaultValue : value;
     }
 }

@@ -1,18 +1,29 @@
-## Getting Started
+# FinUp
 
-Welcome to the VS Code Java world. Here is a guideline to help you get started to write Java code in Visual Studio Code.
+Aplicacao financeira composta por um frontend React/TypeScript e uma API Java para controle financeiro, metas e conquistas.
 
-## Folder Structure
+## Projetos
 
-The workspace contains two folders by default, where:
+- `fintech-frontend`: interface React criada com Vite, Tailwind CSS e componentes shadcn/ui.
+- `fintech-backend`: API REST Java 17 com Javalin e persistencia Oracle via JDBC.
 
-- `src`: the folder to maintain sources
-- `lib`: the folder to maintain dependencies
+## Executar Backend
 
-Meanwhile, the compiled output files will be generated in the `bin` folder by default.
+```bash
+cd fintech-backend
+cp .env.example .env
+# Preencha as credenciais Oracle no arquivo .env.
+mvn exec:java
+```
 
-> If you want to customize the folder structure, open `.vscode/settings.json` and update the related settings there.
+Consulte [fintech-backend/README.md](fintech-backend/README.md) para aplicar a migracao de banco e conhecer os endpoints.
 
-## Dependency Management
+## Executar Frontend
 
-The `JAVA PROJECTS` view allows you to manage your dependencies. More details can be found [here](https://github.com/microsoft/vscode-java-dependency#manage-dependencies).
+```bash
+cd fintech-frontend
+npm install
+npm run dev
+```
+
+A interface inicia em `http://localhost:5173` e a API, por padrao, em `http://localhost:8080`.

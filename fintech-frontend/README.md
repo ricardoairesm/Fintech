@@ -24,7 +24,7 @@ npm run build
 
 ## Integracao com backend
 
-Os contratos em `src/models/fintech.ts` cobrem as entidades presentes em `fintech-backend`. Para a interface, `Goal` e `Challenge` incluem informacoes visuais de titulo e progresso que deverao ser fornecidas ou calculadas pela API. O backend atual implementa DAOs Java, mas nao disponibiliza rotas HTTP; por isso os dados ficam isolados em `src/data/demo.ts` ate a criacao de endpoints para autenticacao e consultas.
+Os contratos em `src/models/fintech.ts` cobrem as entidades presentes em `fintech-backend`. Para a interface, `Goal` e `Challenge` incluem informacoes visuais de titulo e progresso fornecidas pela API. A API REST ja expoe `POST /api/auth/login` e `GET /api/users/{userId}/dashboard`; os dados em `src/data/demo.ts` serao substituidos por essas chamadas na proxima integracao.
 
 ## UI
 

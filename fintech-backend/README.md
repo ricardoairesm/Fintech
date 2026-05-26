@@ -4,15 +4,13 @@ API REST Java 17 para alimentar o frontend FinUp. O projeto utiliza Javalin, Jac
 
 ## Configuracao
 
-As credenciais do banco nao ficam no codigo-fonte. Configure as variaveis antes de iniciar:
+As credenciais do banco nao ficam no codigo-fonte. Crie um arquivo `.env` local a partir de `.env.example`:
 
 ```bash
-export DB_URL='jdbc:oracle:thin:@oracle.fiap.com.br:1521:orcl'
-export DB_USER='seu_usuario'
-export DB_PASSWORD='sua_senha'
-export PORT=8080
-export FRONTEND_ORIGIN='http://localhost:5173'
+cp .env.example .env
 ```
+
+Preencha `DB_USER` e `DB_PASSWORD` no arquivo `.env`. Ele esta ignorado pelo Git e e carregado automaticamente pela biblioteca `dotenv-java` ao iniciar a aplicacao. Variaveis de ambiente definidas pelo sistema possuem precedencia sobre os valores do arquivo, permitindo configuracao segura em deploy.
 
 Antes do primeiro uso do dashboard, execute no schema Oracle a migracao:
 
