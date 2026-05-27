@@ -2,6 +2,10 @@
 
 Aplicacao financeira composta por um frontend React/TypeScript e uma API Java para controle financeiro, metas e conquistas.
 
+Auth de teste:
+email: admin@teste.com
+senha: 1234
+
 ## Projetos
 
 - `fintech-frontend`: interface React (SPA) criada com Vite, React Router, Tailwind CSS e componentes shadcn/ui.
