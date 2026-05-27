@@ -37,17 +37,17 @@ public class BankAccount {
     public Date getUpdatedAt() { return updatedAt; }
 
     public void create() {
-        System.out.println("Salvaria a conta bancaria do usuario no banco de dados.");
+        System.out.println("Salvaria a conta bancária do usuário no banco de dados.");
     }
 
     public void update(String newDescription, String newAgency, String newAccountNumber) {
         this.description = newDescription;
         this.agency = newAgency;
         this.accountNumber = newAccountNumber;
-        System.out.println("Atualizaria os dados da conta bancaria no banco de dados.");
+        System.out.println("Atualizaria os dados da conta bancária no banco de dados.");
     }
 
     public void delete() {
-        System.out.println("Removeria a conta bancaria do banco de dados.");
+        System.out.println("Removeria a conta bancária do banco de dados.");
     }
 }

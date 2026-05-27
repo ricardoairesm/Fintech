@@ -27,6 +27,6 @@ public class CompletedChallenge {
     public Date getUpdatedAt() { return updatedAt; }
 
     public void registerCompletion() {
-        System.out.println("Registraria a conclusao do desafio pelo usuario.");
+        System.out.println("Registraria a conclusão do desafio pelo usuário.");
     }
 }

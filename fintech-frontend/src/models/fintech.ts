@@ -3,6 +3,7 @@ export interface User {
   username: string
   email: string
   celphone: string
+  userType: 'USER' | 'ADMIN'
   tierId: number
   points: number
   mainAddressId: number | null
@@ -36,6 +37,7 @@ export interface Transaction {
   transactionDate: string
   bankAccountId: number
   yield: number | null
+  goalId: number | null
 }
 
 export interface Goal {
@@ -77,4 +79,41 @@ export interface CompletedChallenge {
   userId: number
   challengeId: number
   completedAt: string
+}
+
+export interface DashboardSummary {
+  balance: number
+  totalIncome: number
+  totalExpense: number
+  totalInvested: number
+}
+
+export interface DashboardData {
+  user: User
+  address: Address | null
+  accounts: BankAccount[]
+  transactions: Transaction[]
+  goals: Goal[]
+  tiers: Tier[]
+  rewards: Reward[]
+  challenges: Challenge[]
+  completedChallenges: CompletedChallenge[]
+  summary: DashboardSummary
+}
+
+export interface LoginResponse {
+  user: User
+  token: string
+}
+
+export interface AdminEntities {
+  users: User[]
+  addresses: Address[]
+  accounts: BankAccount[]
+  transactions: Transaction[]
+  goals: Goal[]
+  tiers: Tier[]
+  rewards: Reward[]
+  challenges: Challenge[]
+  completedChallenges: CompletedChallenge[]
 }

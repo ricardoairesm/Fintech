@@ -4,21 +4,27 @@ API REST Java 17 para alimentar o frontend FinUp. O projeto utiliza Javalin, Jac
 
 ## Configuracao
 
-As credenciais do banco nao ficam no codigo-fonte. Crie um arquivo `.env` local a partir de `.env.example`:
+As credenciais do banco não ficam no código-fonte. Crie um arquivo `.env` local a partir de `.env.example`:
 
 ```bash
 cp .env.example .env
 ```
 
-Preencha `DB_USER` e `DB_PASSWORD` no arquivo `.env`. Ele esta ignorado pelo Git e e carregado automaticamente pela biblioteca `dotenv-java` ao iniciar a aplicacao. Variaveis de ambiente definidas pelo sistema possuem precedencia sobre os valores do arquivo, permitindo configuracao segura em deploy.
+Preencha `DB_USER` e `DB_PASSWORD` no arquivo `.env`. Ele está ignorado pelo Git e é carregado automaticamente pela biblioteca `dotenv-java` ao iniciar a aplicação. Variáveis de ambiente definidas pelo sistema possuem precedência sobre os valores do arquivo, permitindo configuração segura em deploy.
 
-Antes do primeiro uso do dashboard, execute no schema Oracle a migracao:
+Antes do primeiro uso da aplicação, execute no schema Oracle as migrações:
 
 ```text
 src/main/resources/db/migration/V001__frontend_dashboard_fields.sql
+src/main/resources/db/migration/V002__user_type_admin_access.sql
 ```
 
-Ela adiciona `title` e `saved_amount` a `goal`, e `title` e `progress` a `challenge`, campos consumidos pela interface React.
+`V001` adiciona os campos de metas e desafios consumidos pela interface React. `V002` adiciona `user_type`, inicialmente preenchido como `USER`. Após executar `V002`, promova uma conta existente para administrar o aplicativo:
+
+```sql
+UPDATE users SET user_type = 'ADMIN' WHERE email = 'seu-email-admin@dominio.com';
+COMMIT;
+```
 
 ## Executar
 
@@ -27,7 +33,7 @@ mvn test
 mvn exec:java
 ```
 
-A verificacao publica de disponibilidade nao depende do banco:
+A verificação pública de disponibilidade não depende do banco:
 
 ```bash
 curl http://localhost:8080/api/health
@@ -38,20 +44,39 @@ curl http://localhost:8080/api/health
 | Metodo | Endpoint | Uso no frontend |
 | --- | --- | --- |
 | `POST` | `/api/auth/login` | Login com `{"email":"...","password":"..."}` |
+| `POST` | `/api/auth/register` | Cria uma conta do tipo `USER` |
+| `POST` | `/api/auth/logout` | Encerra a sessão em memória |
 | `GET` | `/api/users/{userId}/dashboard` | Carga completa da home screen |
-| `GET` | `/api/users/{userId}` | Perfil do usuario sem senha |
-| `GET` | `/api/users/{userId}/address` | Endereco principal |
-| `GET` | `/api/users/{userId}/accounts` | Contas bancarias |
-| `GET` | `/api/users/{userId}/transactions` | Transacoes |
+| `GET` | `/api/users/{userId}` | Perfil do usuário sem senha |
+| `GET` | `/api/users/{userId}/address` | Endereço principal |
+| `GET` | `/api/users/{userId}/accounts` | Contas bancárias |
+| `GET` | `/api/users/{userId}/transactions` | Transações |
 | `GET` | `/api/users/{userId}/goals` | Metas financeiras |
-| `GET` | `/api/users/{userId}/completed-challenges` | Desafios concluidos |
-| `GET` | `/api/tiers` | Niveis de pontuacao |
-| `GET` | `/api/challenges` | Desafios disponiveis |
+| `GET` | `/api/users/{userId}/completed-challenges` | Desafios concluídos |
+| `POST` | `/api/me/accounts` | Cadastra conta bancária do usuário autenticado |
+| `POST` | `/api/me/goals` | Cadastra meta do usuário autenticado |
+| `POST` | `/api/me/transactions` | Cadastra transação do usuário autenticado |
+| `GET` | `/api/tiers` | Níveis de pontuação |
+| `GET` | `/api/challenges` | Desafios disponíveis |
 | `GET` | `/api/rewards` | Recompensas |
 | `GET` | `/api/health` | Status do servidor |
+| `GET` | `/api/admin/entities` | Lista todas as nove entidades; exige `ADMIN` |
+| `POST` | `/api/admin/users` | Cadastra usuário; exige `ADMIN` |
+| `POST` | `/api/admin/addresses` | Cadastra endereço |
+| `POST` | `/api/admin/accounts` | Cadastra conta bancária |
+| `POST` | `/api/admin/transactions` | Cadastra transação |
+| `POST` | `/api/admin/goals` | Cadastra meta |
+| `POST` | `/api/admin/tiers` | Cadastra nível |
+| `POST` | `/api/admin/rewards` | Cadastra recompensa |
+| `POST` | `/api/admin/challenges` | Cadastra desafio |
+| `POST` | `/api/admin/completed-challenges` | Cadastra desafio concluído |
 
-`/api/users/{userId}/dashboard` agrega os nove recursos exibidos pelo frontend: usuario, endereco, contas, transacoes, metas, tiers, recompensas, desafios e desafios concluidos.
+`/api/users/{userId}/dashboard` agrega os nove recursos exibidos pelo frontend: usuário, endereço, contas, transações, metas, níveis, recompensas, desafios e desafios concluídos.
 
-## Observacao De Autenticacao
+## Autenticação E Administração
 
-O model original armazena senha como texto e a rota de login apenas preserva esse comportamento sem expor a senha na resposta. Antes de producao, a persistencia deve migrar para hashes de senha e a API deve emitir uma sessao ou token autenticado.
+O login emite um token de sessão mantido em memória enquanto a API estiver executando. O frontend envia esse token como `Authorization: Bearer <token>` nas rotas `/api/admin/*`, que recusam usuários que não tenham `user_type = 'ADMIN'`.
+
+As rotas `/api/me/accounts`, `/api/me/goals` e `/api/me/transactions` também exigem o token, mas aceitam qualquer usuário autenticado e vinculam o novo registro ao próprio usuário da sessão.
+
+O modelo original ainda armazena senha como texto. Antes de produção, a persistência deve migrar para hashes de senha e a sessão em memória deve ser substituída por uma estratégia durável e segura.

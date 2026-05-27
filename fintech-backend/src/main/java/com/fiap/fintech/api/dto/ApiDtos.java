@@ -24,6 +24,7 @@ public final class ApiDtos {
             String username,
             String email,
             String celphone,
+            String userType,
             int tierId,
             int points,
             Integer mainAddressId,
@@ -36,6 +37,7 @@ public final class ApiDtos {
                     user.getUsername(),
                     user.getEmail(),
                     user.getCelphone(),
+                    user.getUserType(),
                     user.getTierId(),
                     user.getPoints(),
                     user.getMainAddressId(),
@@ -79,7 +81,8 @@ public final class ApiDtos {
             String description,
             String transactionDate,
             int bankAccountId,
-            Integer yield) {
+            Integer yield,
+            Integer goalId) {
 
         public static TransactionResponse from(Transaction transaction) {
             return new TransactionResponse(
@@ -90,7 +93,8 @@ public final class ApiDtos {
                     transaction.getDescription(),
                     toIsoDate(transaction.getTransactionDate()),
                     transaction.getBankAccountId(),
-                    transaction.getYield());
+                    transaction.getYield(),
+                    transaction.getGoalId());
         }
     }
 
@@ -167,19 +171,134 @@ public final class ApiDtos {
             List<TierResponse> tiers,
             List<RewardResponse> rewards,
             List<ChallengeResponse> challenges,
+            List<CompletedChallengeResponse> completedChallenges,
+            DashboardSummaryResponse summary) {
+    }
+
+    public record DashboardSummaryResponse(
+            double balance,
+            double totalIncome,
+            double totalExpense,
+            double totalInvested) {
+    }
+
+    public record AdminEntitiesResponse(
+            List<UserResponse> users,
+            List<AddressResponse> addresses,
+            List<BankAccountResponse> accounts,
+            List<TransactionResponse> transactions,
+            List<GoalResponse> goals,
+            List<TierResponse> tiers,
+            List<RewardResponse> rewards,
+            List<ChallengeResponse> challenges,
             List<CompletedChallengeResponse> completedChallenges) {
+    }
+
+    public record CreateUserRequest(
+            String username,
+            String password,
+            String email,
+            String celphone,
+            String userType,
+            int tierId,
+            int points,
+            Integer mainAddressId,
+            int monthlyIncome,
+            int monthlySpending) {
+    }
+
+    public record CreateAddressRequest(int userId, String addressString, String zipCode) {
+    }
+
+    public record CreateBankAccountRequest(
+            int userId,
+            String bank,
+            String type,
+            String description,
+            String agency,
+            String accountNumber) {
+    }
+
+    public record CreateOwnBankAccountRequest(
+            String bank,
+            String type,
+            String description,
+            String agency,
+            String accountNumber) {
+    }
+
+    public record CreateTransactionRequest(
+            int userId,
+            double amount,
+            String type,
+            String description,
+            String transactionDate,
+            int bankAccountId,
+            Integer yield) {
+    }
+
+    public record CreateOwnTransactionRequest(
+            double amount,
+            String type,
+            String description,
+            String transactionDate,
+            int bankAccountId,
+            Integer yield,
+            Integer goalId) {
+    }
+
+    public record CreateGoalRequest(
+            int userId,
+            String title,
+            double amount,
+            double savedAmount,
+            String limitDate) {
+    }
+
+    public record CreateOwnGoalRequest(String title, double amount, String limitDate) {
+    }
+
+    public record CreateTierRequest(String name, int minPointsRequired, int hierarchy) {
+    }
+
+    public record CreateRewardRequest(String name, String description, boolean active) {
+    }
+
+    public record CreateChallengeRequest(
+            String title,
+            int minTierId,
+            String startDate,
+            String endDate,
+            boolean active,
+            int rewardId,
+            int progress) {
+    }
+
+    public record CreateCompletedChallengeRequest(int userId, int challengeId, String completedAt) {
     }
 
     public record LoginRequest(String email, String password) {
     }
 
-    public record LoginResponse(UserResponse user) {
+    public record LoginResponse(UserResponse user, String token) {
+    }
+
+    public record RegisterRequest(
+            String username,
+            String password,
+            String email,
+            String celphone,
+            int monthlyIncome,
+            int monthlySpending) {
     }
 
     public record ApiError(String message) {
     }
 
     public record HealthResponse(String status) {
+    }
+
+    public record OperationResponse(String message) {
     }
 
     private static String toIsoDate(Date value) {

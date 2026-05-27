@@ -23,7 +23,7 @@ public final class Environment {
     public static String require(String key) {
         String value = DOTENV.get(key);
         if (value == null || value.isBlank()) {
-            throw new IllegalStateException("Configure " + key + " no arquivo .env ou nas variaveis de ambiente.");
+            throw new IllegalStateException("Configure " + key + " no arquivo .env ou nas variáveis de ambiente.");
         }
         return value;
     }

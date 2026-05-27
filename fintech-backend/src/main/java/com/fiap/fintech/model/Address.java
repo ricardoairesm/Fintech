@@ -27,16 +27,16 @@ public class Address {
     public Date getUpdatedAt() { return updatedAt; }
 
     public void create() {
-        System.out.println("Salvaria o endereco do usuario no banco de dados.");
+        System.out.println("Salvaria o endereço do usuário no banco de dados.");
     }
 
     public void update(String newAddressString, String newZipCode) {
         this.addressString = newAddressString;
         this.zipCode = newZipCode;
-        System.out.println("Atualizaria o endereco do usuario no banco de dados.");
+        System.out.println("Atualizaria o endereço do usuário no banco de dados.");
     }
 
     public void delete() {
-        System.out.println("Removeria o endereco do banco de dados.");
+        System.out.println("Removeria o endereço do banco de dados.");
     }
 }

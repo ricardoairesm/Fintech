@@ -38,7 +38,7 @@ public class Goal {
     public Date getUpdatedAt() { return updatedAt; }
 
     public void create() {
-        System.out.println("Salvaria a meta financeira do usuario no banco de dados.");
+        System.out.println("Salvaria a meta financeira do usuário no banco de dados.");
     }
 
     public void updateAmount(double newAmount) {

@@ -21,8 +21,8 @@ public class UserDao implements AutoCloseable {
 
     public void cadastrar(User user) throws SQLException {
         PreparedStatement stmt = conexao.prepareStatement(
-                "insert into users (id, username, password, email, celphone, tier_id, points, main_address_id, monthly_income, monthly_spending, created_at, updated_at) " +
-                        "values (seq_users.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                "insert into users (id, username, password, email, celphone, user_type, tier_id, points, main_address_id, monthly_income, monthly_spending, created_at, updated_at) " +
+                        "values (seq_users.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         popularStatement(user, stmt);
         stmt.executeUpdate();
         stmt.close();
@@ -30,10 +30,10 @@ public class UserDao implements AutoCloseable {
 
     public void atualizar(User user) throws SQLException, EntidadeNaoEncontrada {
         PreparedStatement stmt = conexao.prepareStatement(
-                "update users set username = ?, password = ?, email = ?, celphone = ?, tier_id = ?, points = ?, " +
+                "update users set username = ?, password = ?, email = ?, celphone = ?, user_type = ?, tier_id = ?, points = ?, " +
                         "main_address_id = ?, monthly_income = ?, monthly_spending = ?, created_at = ?, updated_at = ? where id = ?");
         popularStatement(user, stmt);
-        stmt.setInt(12, user.getId());
+        stmt.setInt(13, user.getId());
         int linhas = stmt.executeUpdate();
         stmt.close();
         if (linhas == 0) {
@@ -54,6 +54,7 @@ public class UserDao implements AutoCloseable {
                     rs.getString("password"),
                     rs.getString("email"),
                     rs.getString("celphone"),
+                    rs.getString("user_type"),
                     rs.getInt("tier_id"),
                     rs.getInt("points"),
                     mainAddressId,
@@ -84,6 +85,7 @@ public class UserDao implements AutoCloseable {
                     rs.getString("password"),
                     rs.getString("email"),
                     rs.getString("celphone"),
+                    rs.getString("user_type"),
                     rs.getInt("tier_id"),
                     rs.getInt("points"),
                     mainAddressId,
@@ -113,13 +115,14 @@ public class UserDao implements AutoCloseable {
         stmt.setString(2, user.getPassword());
         stmt.setString(3, user.getEmail());
         stmt.setString(4, user.getCelphone());
-        stmt.setInt(5, user.getTierId());
-        stmt.setInt(6, user.getPoints());
-        DaoUtils.setNullableInteger(stmt, 7, user.getMainAddressId());
-        stmt.setInt(8, user.getMonthlyIncome());
-        stmt.setInt(9, user.getMonthlySpending());
-        stmt.setDate(10, DaoUtils.toSqlDate(user.getCreatedAt()));
-        stmt.setDate(11, DaoUtils.toSqlDate(user.getUpdatedAt()));
+        stmt.setString(5, user.getUserType());
+        stmt.setInt(6, user.getTierId());
+        stmt.setInt(7, user.getPoints());
+        DaoUtils.setNullableInteger(stmt, 8, user.getMainAddressId());
+        stmt.setInt(9, user.getMonthlyIncome());
+        stmt.setInt(10, user.getMonthlySpending());
+        stmt.setDate(11, DaoUtils.toSqlDate(user.getCreatedAt()));
+        stmt.setDate(12, DaoUtils.toSqlDate(user.getUpdatedAt()));
     }
 
     @Override

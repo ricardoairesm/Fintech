@@ -11,6 +11,6 @@ public class App {
         int port = Integer.parseInt(Environment.get("PORT", "8080"));
         Javalin api = FintechApi.create(new FintechService());
         api.start(port);
-        System.out.println("Fintech API disponivel em http://localhost:" + port + "/api");
+        System.out.println("Fintech API disponível em http://localhost:" + port + "/api");
     }
 }

@@ -21,8 +21,8 @@ public class TransactionDao implements AutoCloseable {
 
     public void cadastrar(Transaction transaction) throws SQLException {
         PreparedStatement stmt = conexao.prepareStatement(
-                "insert into transactions (id, user_id, amount, type, description, transaction_date, bank_account_id, yield, created_at, updated_at) " +
-                        "values (seq_transactions.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                "insert into transactions (id, user_id, amount, type, description, transaction_date, bank_account_id, yield, goal_id, created_at, updated_at) " +
+                        "values (seq_transactions.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         popularStatement(transaction, stmt);
         stmt.executeUpdate();
         stmt.close();
@@ -31,9 +31,9 @@ public class TransactionDao implements AutoCloseable {
     public void atualizar(Transaction transaction) throws SQLException, EntidadeNaoEncontrada {
         PreparedStatement stmt = conexao.prepareStatement(
                 "update transactions set user_id = ?, amount = ?, type = ?, description = ?, transaction_date = ?, " +
-                        "bank_account_id = ?, yield = ?, created_at = ?, updated_at = ? where id = ?");
+                        "bank_account_id = ?, yield = ?, goal_id = ?, created_at = ?, updated_at = ? where id = ?");
         popularStatement(transaction, stmt);
-        stmt.setInt(10, transaction.getId());
+        stmt.setInt(11, transaction.getId());
         int linhas = stmt.executeUpdate();
         stmt.close();
         if (linhas == 0) {
@@ -48,6 +48,7 @@ public class TransactionDao implements AutoCloseable {
 
         if (rs.next()) {
             Integer yield = rs.getObject("yield") == null ? null : rs.getInt("yield");
+            Integer goalId = rs.getObject("goal_id") == null ? null : rs.getInt("goal_id");
             Transaction transaction = new Transaction(
                     rs.getInt("id"),
                     rs.getInt("user_id"),
@@ -57,6 +58,7 @@ public class TransactionDao implements AutoCloseable {
                     rs.getDate("transaction_date"),
                     rs.getInt("bank_account_id"),
                     yield,
+                    goalId,
                     rs.getDate("created_at"),
                     rs.getDate("updated_at"));
             rs.close();
@@ -76,6 +78,7 @@ public class TransactionDao implements AutoCloseable {
 
         while (rs.next()) {
             Integer yield = rs.getObject("yield") == null ? null : rs.getInt("yield");
+            Integer goalId = rs.getObject("goal_id") == null ? null : rs.getInt("goal_id");
             lista.add(new Transaction(
                     rs.getInt("id"),
                     rs.getInt("user_id"),
@@ -85,6 +88,7 @@ public class TransactionDao implements AutoCloseable {
                     rs.getDate("transaction_date"),
                     rs.getInt("bank_account_id"),
                     yield,
+                    goalId,
                     rs.getDate("created_at"),
                     rs.getDate("updated_at")));
         }
@@ -112,8 +116,9 @@ public class TransactionDao implements AutoCloseable {
         stmt.setDate(5, DaoUtils.toSqlDate(transaction.getTransactionDate()));
         stmt.setInt(6, transaction.getBankAccountId());
         DaoUtils.setNullableInteger(stmt, 7, transaction.getYield());
-        stmt.setDate(8, DaoUtils.toSqlDate(transaction.getCreatedAt()));
-        stmt.setDate(9, DaoUtils.toSqlDate(transaction.getUpdatedAt()));
+        DaoUtils.setNullableInteger(stmt, 8, transaction.getGoalId());
+        stmt.setDate(9, DaoUtils.toSqlDate(transaction.getCreatedAt()));
+        stmt.setDate(10, DaoUtils.toSqlDate(transaction.getUpdatedAt()));
     }
 
     @Override

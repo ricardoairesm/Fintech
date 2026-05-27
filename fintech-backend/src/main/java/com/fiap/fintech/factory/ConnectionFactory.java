@@ -25,7 +25,7 @@ public class ConnectionFactory {
         try {
             Class.forName("oracle.jdbc.OracleDriver");
         } catch (ClassNotFoundException e) {
-            throw new SQLException("Driver JDBC Oracle nao encontrado no classpath do projeto.", e);
+            throw new SQLException("Driver JDBC Oracle não encontrado no classpath do projeto.", e);
         }
         return DriverManager.getConnection(connectionString, user, password);
     }

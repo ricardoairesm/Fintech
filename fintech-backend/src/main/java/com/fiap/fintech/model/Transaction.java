@@ -11,11 +11,12 @@ public class Transaction {
     private Date transactionDate;
     private int bankAccountId;
     private Integer yield;
+    private Integer goalId;
     private Date createdAt;
     private Date updatedAt;
 
     public Transaction(int id, int userId, double amount, String type, String description,
-            Date transactionDate, int bankAccountId, Integer yield, Date createdAt, Date updatedAt) {
+            Date transactionDate, int bankAccountId, Integer yield, Integer goalId, Date createdAt, Date updatedAt) {
         this.id = id;
         this.userId = userId;
         this.amount = amount;
@@ -24,6 +25,7 @@ public class Transaction {
         this.transactionDate = transactionDate;
         this.bankAccountId = bankAccountId;
         this.yield = yield;
+        this.goalId = goalId;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -36,11 +38,12 @@ public class Transaction {
     public Date getTransactionDate() { return transactionDate; }
     public int getBankAccountId() { return bankAccountId; }
     public Integer getYield() { return yield; }
+    public Integer getGoalId() { return goalId; }
     public Date getCreatedAt() { return createdAt; }
     public Date getUpdatedAt() { return updatedAt; }
 
     public void create() {
-        System.out.println("Salvaria a transacao no banco de dados.");
+        System.out.println("Salvaria a transação no banco de dados.");
     }
 
     public boolean hasYield() {

@@ -101,7 +101,7 @@ public class Teste {
             rewards.add(new Reward(
                     0,
                     "Reward_" + lote + "_" + i,
-                    "Descricao aleatoria " + (100 + RANDOM.nextInt(900)),
+                    "Descrição aleatória " + (100 + RANDOM.nextInt(900)),
                     i % 2 == 0,
                     now,
                     now));
@@ -114,7 +114,7 @@ public class Teste {
         System.out.println("===== INSERT REWARD =====");
         for (Reward reward : rewards) {
             System.out.println("Inserindo reward -> nome: " + reward.getName()
-                    + ", descricao: " + reward.getDescription()
+                    + ", descrição: " + reward.getDescription()
                     + ", active: " + reward.isActive());
             rewardDao.insert(reward);
         }
@@ -126,7 +126,7 @@ public class Teste {
         for (Reward reward : rewards) {
             System.out.println("id=" + reward.getId()
                     + ", nome=" + reward.getName()
-                    + ", descricao=" + reward.getDescription()
+                    + ", descrição=" + reward.getDescription()
                     + ", active=" + reward.isActive());
         }
     }

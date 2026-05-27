@@ -8,6 +8,7 @@ public class User {
     private String password;
     private String email;
     private String celphone;
+    private String userType;
     private int tierId;
     private int points;
     private Integer mainAddressId;
@@ -16,7 +17,7 @@ public class User {
     private Date createdAt;
     private Date updatedAt;
 
-    public User(int id, String username, String password, String email, String celphone,
+    public User(int id, String username, String password, String email, String celphone, String userType,
             int tierId, int points, Integer mainAddressId, int monthlyIncome,
             int monthlySpending, Date createdAt, Date updatedAt) {
         this.id = id;
@@ -24,6 +25,7 @@ public class User {
         this.password = password;
         this.email = email;
         this.celphone = celphone;
+        this.userType = userType;
         this.tierId = tierId;
         this.points = points;
         this.mainAddressId = mainAddressId;
@@ -38,6 +40,7 @@ public class User {
     public String getPassword() { return password; }
     public String getEmail() { return email; }
     public String getCelphone() { return celphone; }
+    public String getUserType() { return userType; }
     public int getTierId() { return tierId; }
     public int getPoints() { return points; }
     public Integer getMainAddressId() { return mainAddressId; }
@@ -47,17 +50,17 @@ public class User {
     public Date getUpdatedAt() { return updatedAt; }
 
     public void register() {
-        System.out.println("Salvaria o novo usuario no banco de dados.");
+        System.out.println("Salvaria o novo usuário no banco de dados.");
     }
 
     public void addPoints(int additionalPoints) {
         this.points += additionalPoints;
-        System.out.println("Atualizaria a pontuacao do usuario.");
+        System.out.println("Atualizaria a pontuação do usuário.");
     }
 
     public void updateFinancialProfile(int newMonthlyIncome, int newMonthlySpending) {
         this.monthlyIncome = newMonthlyIncome;
         this.monthlySpending = newMonthlySpending;
-        System.out.println("Atualizaria a renda e os gastos mensais do usuario.");
+        System.out.println("Atualizaria a renda e os gastos mensais do usuário.");
     }
 }

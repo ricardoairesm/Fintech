@@ -27,7 +27,7 @@ public class Tier {
     public Date getUpdatedAt() { return updatedAt; }
 
     public void create() {
-        System.out.println("Salvaria o tier no banco de dados.");
+        System.out.println("Salvaria o nível no banco de dados.");
     }
 
     public boolean matchesPoints(int points) {
