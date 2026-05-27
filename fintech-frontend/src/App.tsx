@@ -1,4 +1,5 @@
-import { type FormEvent, useState } from 'react'
+import { type FormEvent, type ReactElement, useEffect, useState } from 'react'
+import { BrowserRouter, Link, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import {
   ArrowDownLeft,
   ArrowRight,
@@ -34,7 +35,8 @@ import { Label } from '@/components/ui/label'
 import { Progress } from '@/components/ui/progress'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { createOwnBankAccount, createOwnGoal, createOwnTransaction, loadDashboard, login, logout, registerUser } from '@/api/fintech'
+import { createOwnBankAccount, createOwnGoal, createOwnTransaction, loadDashboard, registerUser } from '@/api/fintech'
+import { AuthProvider, useAuth } from '@/auth'
 import type { Address, BankAccount, Challenge, CompletedChallenge, DashboardData, Goal, Reward, Tier, Transaction, User } from '@/models/fintech'
 
 const currency = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -42,37 +44,114 @@ const dayMonth = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'shor
 const localDate = (date: string) => new Date(`${date}T12:00:00`)
 
 function App() {
-  const [dashboard, setDashboard] = useState<DashboardData | null>(null)
-  const [authScreen, setAuthScreen] = useState<'login' | 'register'>('login')
-  const [registrationComplete, setRegistrationComplete] = useState(false)
-
-  if (!dashboard) {
-    if (authScreen === 'register') {
-      return (
-        <Registration
-          onBack={() => setAuthScreen('login')}
-          onRegistered={() => {
-            setRegistrationComplete(true)
-            setAuthScreen('login')
-          }}
-        />
-      )
-    }
-    return <Login onLogin={setDashboard} onRegister={() => setAuthScreen('register')} registrationComplete={registrationComplete} />
-  }
-
-  return <Dashboard data={dashboard} onDataChange={setDashboard} onLogout={() => { void logout(); setDashboard(null) }} />
+  return (
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Registration />} />
+          <Route path="/" element={<RequireAuth><DashboardPage /></RequireAuth>} />
+          <Route path="/admin" element={<RequireAuth admin><AdminPage /></RequireAuth>} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
+  )
 }
 
-function Login({
-  onLogin,
-  onRegister,
-  registrationComplete,
-}: {
-  onLogin: (dashboard: DashboardData) => void
-  onRegister: () => void
-  registrationComplete: boolean
-}) {
+function RequireAuth({ admin = false, children }: { admin?: boolean; children: ReactElement }) {
+  const { user } = useAuth()
+  if (!user) {
+    return <Navigate to="/login" replace />
+  }
+  if (admin && user.userType !== 'ADMIN') {
+    return <Navigate to="/" replace />
+  }
+  return children
+}
+
+function DashboardPage() {
+  const { user, signOut } = useAuth()
+  const navigate = useNavigate()
+  const [dashboard, setDashboard] = useState<DashboardData | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!user) {
+      return
+    }
+    let active = true
+    loadDashboard(user.id)
+      .then((data) => { if (active) setDashboard(data) })
+      .catch((loadError) => { if (active) setError(loadError instanceof Error ? loadError.message : 'Não foi possível carregar o painel.') })
+    return () => { active = false }
+  }, [user])
+
+  async function handleLogout() {
+    await signOut()
+    navigate('/login', { replace: true })
+  }
+
+  if (error) {
+    return (
+      <main className="flex min-h-screen items-center justify-center p-6">
+        <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
+      </main>
+    )
+  }
+
+  if (!dashboard) {
+    return (
+      <main className="flex min-h-screen items-center justify-center p-6 text-sm text-muted-foreground">Carregando painel...</main>
+    )
+  }
+
+  return <Dashboard data={dashboard} onDataChange={setDashboard} onLogout={handleLogout} />
+}
+
+function AdminPage() {
+  const navigate = useNavigate()
+  const { signOut } = useAuth()
+  return (
+    <div className="min-h-screen bg-muted/40">
+      <header className="sticky top-0 z-10 border-b border-border bg-background/90 backdrop-blur">
+        <div className="mx-auto flex h-18 max-w-7xl items-center justify-between px-5 lg:px-8">
+          <Brand />
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => navigate('/')}>Voltar ao painel</Button>
+            <Button variant="ghost" size="icon" aria-label="Sair" onClick={async () => { await signOut(); navigate('/login', { replace: true }) }}>
+              <LogOut className="size-5" />
+            </Button>
+          </div>
+        </div>
+      </header>
+      <main className="mx-auto max-w-7xl px-5 py-7 lg:px-8">
+        <AdminDashboard />
+      </main>
+    </div>
+  )
+}
+
+function NotFound() {
+  const { user } = useAuth()
+  return (
+    <main className="flex min-h-screen flex-col items-center justify-center gap-5 bg-muted/40 p-6 text-center">
+      <Brand />
+      <p className="text-7xl font-semibold tracking-tight text-primary">404</p>
+      <h1 className="text-2xl font-semibold">Página não encontrada</h1>
+      <p className="max-w-md text-muted-foreground">O endereço acessado não existe ou foi movido. Verifique o link e tente novamente.</p>
+      <Button asChild>
+        <Link to={user ? '/' : '/login'}>{user ? 'Voltar ao painel' : 'Ir para o login'}</Link>
+      </Button>
+    </main>
+  )
+}
+
+function Login() {
+  const { signIn } = useAuth()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const registrationComplete = (location.state as { registered?: boolean } | null)?.registered === true
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -84,15 +163,16 @@ function Login({
     setError(null)
 
     try {
-      const authentication = await login(email, password)
-      const dashboard = await loadDashboard(authentication.user.id)
-      onLogin(dashboard)
+      await signIn(email, password)
+      navigate('/', { replace: true })
     } catch (loginError) {
       setError(loginError instanceof Error ? loginError.message : 'Não foi possível realizar o login.')
     } finally {
       setLoading(false)
     }
   }
+
+  const onRegister = () => navigate('/register')
 
   return (
     <main className="grid min-h-screen bg-background lg:grid-cols-[1.06fr_0.94fr]">
@@ -171,9 +251,11 @@ function Login({
   )
 }
 
-function Registration({ onBack, onRegistered }: { onBack: () => void; onRegistered: () => void }) {
+function Registration() {
+  const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const onBack = () => navigate('/login')
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -190,7 +272,7 @@ function Registration({ onBack, onRegistered }: { onBack: () => void; onRegister
         monthlyIncome: Number(data.get('monthlyIncome')),
         monthlySpending: Number(data.get('monthlySpending')),
       })
-      onRegistered()
+      navigate('/login', { state: { registered: true } })
     } catch (registrationError) {
       setError(registrationError instanceof Error ? registrationError.message : 'Não foi possível criar sua conta.')
     } finally {
@@ -260,6 +342,7 @@ function Dashboard({
   onDataChange: (dashboard: DashboardData) => void
   onLogout: () => void
 }) {
+  const navigate = useNavigate()
   const [showTransactionForm, setShowTransactionForm] = useState(false)
   const { user, address, accounts, transactions, goals, tiers, rewards, challenges, completedChallenges } = data
   const currentTier = tiers.find((tier) => tier.id === user.tierId)
@@ -300,6 +383,11 @@ function Dashboard({
               <p className="text-sm font-medium">{user.username}</p>
               <p className="text-xs text-muted-foreground">{tierName}</p>
             </div>
+            {isAdmin && (
+              <Button variant="outline" size="sm" onClick={() => navigate('/admin')}>
+                <Database className="size-4" /> Painel de dados
+              </Button>
+            )}
             <Button variant="ghost" size="icon" onClick={onLogout} aria-label="Sair">
               <LogOut className="size-5" />
             </Button>
@@ -344,7 +432,6 @@ function Dashboard({
             <TabsTrigger value="financas"><Wallet className="mr-2 size-4" />Finanças</TabsTrigger>
             <TabsTrigger value="conquistas"><Trophy className="mr-2 size-4" />Conquistas</TabsTrigger>
             <TabsTrigger value="perfil"><UserRound className="mr-2 size-4" />Perfil</TabsTrigger>
-            {isAdmin && <TabsTrigger value="admin"><Database className="mr-2 size-4" />Admin</TabsTrigger>}
           </TabsList>
 
           <TabsContent value="resumo">
@@ -395,12 +482,6 @@ function Dashboard({
           <TabsContent value="perfil">
             <Profile data={{ user, address, accounts, transactions, goals, tiers, rewards: activeRewards, challenges: activeChallenges }} />
           </TabsContent>
-
-          {isAdmin && (
-            <TabsContent value="admin">
-              <AdminDashboard />
-            </TabsContent>
-          )}
         </Tabs>
       </main>
     </div>

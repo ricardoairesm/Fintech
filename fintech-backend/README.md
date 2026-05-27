@@ -1,6 +1,12 @@
 # Fintech Backend API
 
-API REST Java 17 para alimentar o frontend FinUp. O projeto utiliza Javalin, Jackson e os DAOs JDBC/Oracle existentes.
+API REST Java 17 para alimentar o frontend FinUp. Construída com **Spring Boot 3** (Spring Web + Spring Data JPA), Oracle JDBC e carregamento de `.env` via `spring-dotenv`. As camadas seguem o padrão **Entity → Repository (JPA) → Service → Controller (`@RestController`)** com CRUD completo (GET/POST/PUT/DELETE) por entidade.
+
+## Pre-requisitos
+
+- Java 17 (JDK)
+- Maven 3.9+
+- Acesso a um schema Oracle
 
 ## Configuracao
 
@@ -17,9 +23,10 @@ Antes do primeiro uso da aplicação, execute no schema Oracle as migrações:
 ```text
 src/main/resources/db/migration/V001__frontend_dashboard_fields.sql
 src/main/resources/db/migration/V002__user_type_admin_access.sql
+src/main/resources/db/migration/V003__transaction_goal_link.sql
 ```
 
-`V001` adiciona os campos de metas e desafios consumidos pela interface React. `V002` adiciona `user_type`, inicialmente preenchido como `USER`. Após executar `V002`, promova uma conta existente para administrar o aplicativo:
+`V001` adiciona os campos de metas e desafios consumidos pela interface React. `V002` adiciona `user_type`, inicialmente preenchido como `USER`. `V003` adiciona a coluna `goal_id` em `transactions`, usada para vincular transações de investimento a uma meta e atualizar seu `saved_amount`. Após executar `V002`, promova uma conta existente para administrar o aplicativo:
 
 ```sql
 UPDATE users SET user_type = 'ADMIN' WHERE email = 'seu-email-admin@dominio.com';
@@ -29,8 +36,7 @@ COMMIT;
 ## Executar
 
 ```bash
-mvn test
-mvn exec:java
+mvn spring-boot:run
 ```
 
 A verificação pública de disponibilidade não depende do banco:
@@ -71,7 +77,25 @@ curl http://localhost:8080/api/health
 | `POST` | `/api/admin/challenges` | Cadastra desafio |
 | `POST` | `/api/admin/completed-challenges` | Cadastra desafio concluído |
 
-`/api/users/{userId}/dashboard` agrega os nove recursos exibidos pelo frontend: usuário, endereço, contas, transações, metas, níveis, recompensas, desafios e desafios concluídos.
+`/api/users/{userId}/dashboard` agrega os nove recursos exibidos pelo frontend: usuário, endereço, contas, transações, metas, níveis, recompensas, desafios e desafios concluídos, além de um `summary` com saldo (receitas − despesas − investimentos) e os totais por tipo.
+
+### CRUD completo por entidade (`@RestController`)
+
+Cada entidade expõe um controller REST com os quatro verbos e códigos de status adequados (`GET` 200, `POST` 201, `PUT` 200, `DELETE` 204; 400/404 para erros):
+
+| Base | Entidade |
+| --- | --- |
+| `/api/users` | Usuários |
+| `/api/addresses` | Endereços |
+| `/api/bank-accounts` | Contas bancárias |
+| `/api/transactions` | Transações |
+| `/api/goals` | Metas |
+| `/api/tiers` | Níveis |
+| `/api/rewards` | Recompensas |
+| `/api/challenges` | Desafios |
+| `/api/completed-challenges` | Desafios concluídos |
+
+Padrão por base: `GET /api/{base}` (lista, aceita `?userId=` onde aplicável), `GET /api/{base}/{id}`, `POST /api/{base}`, `PUT /api/{base}/{id}`, `DELETE /api/{base}/{id}`. O painel de administração do frontend consome esses endpoints para consultar, inserir, atualizar e remover registros.
 
 ## Autenticação E Administração
 
@@ -79,4 +103,4 @@ O login emite um token de sessão mantido em memória enquanto a API estiver exe
 
 As rotas `/api/me/accounts`, `/api/me/goals` e `/api/me/transactions` também exigem o token, mas aceitam qualquer usuário autenticado e vinculam o novo registro ao próprio usuário da sessão.
 
-O modelo original ainda armazena senha como texto. Antes de produção, a persistência deve migrar para hashes de senha e a sessão em memória deve ser substituída por uma estratégia durável e segura.
+O modelo ainda armazena senha como texto. Antes de produção, a persistência deve migrar para hashes de senha e a sessão em memória deve ser substituída por uma estratégia durável e segura (ex.: JWT + Spring Security).

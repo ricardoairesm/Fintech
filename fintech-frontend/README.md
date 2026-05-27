@@ -1,6 +1,10 @@
 # FinUp Frontend
 
-Frontend React + TypeScript da aplicação Fintech, criado com Vite, Tailwind CSS e componentes no padrão [shadcn/ui](https://ui.shadcn.com/).
+Frontend React + TypeScript da aplicação Fintech, criado com Vite, React Router, Tailwind CSS e componentes no padrão [shadcn/ui](https://ui.shadcn.com/).
+
+## Pre-requisitos
+
+- Node.js 20.19+ e npm
 
 ## Executar
 
@@ -11,20 +15,32 @@ npm install
 npm run dev
 ```
 
+A interface inicia em `http://localhost:5173`.
+
 Para gerar a versão de produção:
 
 ```bash
 npm run build
 ```
 
+## Rotas (SPA com React Router)
+
+| Rota | Página |
+| --- | --- |
+| `/login` | Autenticação pela API backend |
+| `/register` | Cadastro público de contas `USER` |
+| `/` | Painel do usuário (resumo, finanças, conquistas, perfil) — protegida |
+| `/admin` | Painel de dados com CRUD completo das 9 entidades — apenas `ADMIN` |
+| `*` | Página de erro `404` personalizada |
+
 ## Telas
 
 - Login autenticado pela API backend.
 - Cadastro público de novas contas do tipo `USER`.
-- Dashboard com resumo, transações e cadastro das próprias contas bancárias, metas e transações.
+- Painel do usuário com resumo, transações e cadastro das próprias contas bancárias, metas e transações.
 - Área de conquistas com níveis, desafios concluídos/ativos e recompensas.
 - Perfil com usuário e endereço principal.
-- Painel Admin, visível somente para usuários `ADMIN`, para listar as nove entidades e cadastrar novos registros.
+- **Painel de dados** (`/admin`), visível somente para usuários `ADMIN`, para **consultar, inserir, atualizar e remover** registros das nove entidades, consumindo os controllers REST de CRUD do backend.
 
 ## Integração com backend
 

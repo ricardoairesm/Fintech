@@ -90,6 +90,29 @@ export async function createOwnTransaction(payload: {
   })
 }
 
+export async function createEntity(path: string, payload: Record<string, unknown>): Promise<void> {
+  await request(`/${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authorizationHeaders() },
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function updateEntity(path: string, id: number, payload: Record<string, unknown>): Promise<void> {
+  await request(`/${path}/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...authorizationHeaders() },
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function deleteEntity(path: string, id: number): Promise<void> {
+  await request(`/${path}/${id}`, {
+    method: 'DELETE',
+    headers: { ...authorizationHeaders() },
+  })
+}
+
 export async function loadAdminEntities(): Promise<AdminEntities> {
   return request<AdminEntities>('/admin/entities', { headers: authorizationHeaders() })
 }

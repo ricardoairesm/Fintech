@@ -1,7 +1,7 @@
 import { type FormEvent, useEffect, useMemo, useState } from 'react'
-import { Database, LoaderCircle, Plus, RefreshCw, ShieldCheck } from 'lucide-react'
+import { Database, LoaderCircle, Pencil, Plus, RefreshCw, ShieldCheck, Trash2, X } from 'lucide-react'
 
-import { createAdminEntity, loadAdminEntities } from '@/api/fintech'
+import { createEntity, deleteEntity, loadAdminEntities, updateEntity } from '@/api/fintech'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -145,6 +145,18 @@ const entities: EntityConfig[] = [
   },
 ]
 
+const CRUD_PATHS: Record<AdminEntityKey, string> = {
+  users: 'users',
+  addresses: 'addresses',
+  accounts: 'bank-accounts',
+  transactions: 'transactions',
+  goals: 'goals',
+  tiers: 'tiers',
+  rewards: 'rewards',
+  challenges: 'challenges',
+  completedChallenges: 'completed-challenges',
+}
+
 function columns(names: string[]) {
   return names.map((name) => ({ name, label: labelFor(name) }))
 }
@@ -193,6 +205,7 @@ export function AdminDashboard() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [editing, setEditing] = useState<Row | null>(null)
   const selected = entities.find((entity) => entity.key === selectedKey) ?? entities[0]
   const rows = useMemo(() => (data?.[selectedKey] ?? []) as unknown as Row[], [data, selectedKey])
 
@@ -252,15 +265,46 @@ export function AdminDashboard() {
     })
 
     try {
-      await createAdminEntity(selected.endpoint, payload)
+      if (editing) {
+        await updateEntity(CRUD_PATHS[selected.key], Number(editing.id), payload)
+        setSuccess(`${selected.label}: registro atualizado.`)
+        setEditing(null)
+      } else {
+        await createEntity(CRUD_PATHS[selected.key], payload)
+        setSuccess(`${selected.label}: registro cadastrado.`)
+      }
       form.reset()
-      setSuccess(`${selected.label}: registro cadastrado.`)
       await refresh()
     } catch (requestError) {
       setError(messageOf(requestError))
     } finally {
       setSaving(false)
     }
+  }
+
+  async function handleDelete(row: Row) {
+    if (!window.confirm('Excluir este registro permanentemente?')) {
+      return
+    }
+    setError(null)
+    setSuccess(null)
+    try {
+      await deleteEntity(CRUD_PATHS[selected.key], Number(row.id))
+      if (editing && editing.id === row.id) {
+        setEditing(null)
+      }
+      setSuccess(`${selected.label}: registro excluído.`)
+      await refresh()
+    } catch (requestError) {
+      setError(messageOf(requestError))
+    }
+  }
+
+  function startEdit(row: Row) {
+    setEditing(row)
+    setSuccess(null)
+    setError(null)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   return (
@@ -285,7 +329,7 @@ export function AdminDashboard() {
           <button
             key={entity.key}
             type="button"
-            onClick={() => { setSelectedKey(entity.key); setSuccess(null); setError(null) }}
+            onClick={() => { setSelectedKey(entity.key); setSuccess(null); setError(null); setEditing(null) }}
             className={`rounded-xl border p-4 text-left transition ${entity.key === selectedKey ? 'border-primary bg-primary/5' : 'border-border bg-background hover:bg-muted/45'}`}
           >
             <p className="text-sm font-medium">{entity.label}</p>
@@ -312,16 +356,23 @@ export function AdminDashboard() {
             ) : rows.length === 0 ? (
               <p className="rounded-xl bg-muted/65 p-8 text-center text-sm text-muted-foreground">Nenhum registro cadastrado nesta entidade.</p>
             ) : (
-              <table className="w-full min-w-[520px] text-sm">
+              <table className="w-full min-w-[560px] text-sm">
                 <thead>
                   <tr className="border-b text-left text-muted-foreground">
                     {selected.columns.map((column) => <th className="px-3 py-3 font-medium" key={column.name}>{column.label}</th>)}
+                    <th className="px-3 py-3 text-right font-medium">Ações</th>
                   </tr>
                 </thead>
                 <tbody>
                   {rows.map((row, index) => (
-                    <tr key={String(row.id ?? index)} className="border-b border-border/60 last:border-0">
+                    <tr key={String(row.id ?? index)} className={`border-b border-border/60 last:border-0 ${editing?.id === row.id ? 'bg-primary/5' : ''}`}>
                       {selected.columns.map((column) => <td className="px-3 py-3" key={column.name}>{display(row[column.name])}</td>)}
+                      <td className="px-3 py-3">
+                        <div className="flex justify-end gap-1">
+                          <Button variant="ghost" size="icon" aria-label="Editar" onClick={() => startEdit(row)}><Pencil className="size-4" /></Button>
+                          <Button variant="ghost" size="icon" aria-label="Excluir" onClick={() => void handleDelete(row)}><Trash2 className="size-4 text-red-600" /></Button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -332,15 +383,23 @@ export function AdminDashboard() {
 
         <Card className="border-0 shadow-card">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2"><Plus className="size-4 text-primary" />Cadastrar {selected.label.toLowerCase()}</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              {editing ? <Pencil className="size-4 text-primary" /> : <Plus className="size-4 text-primary" />}
+              {editing ? `Editar ${selected.label.toLowerCase()} #${editing.id}` : `Cadastrar ${selected.label.toLowerCase()}`}
+            </CardTitle>
             <CardDescription>Os identificadores devem apontar para registros existentes.</CardDescription>
           </CardHeader>
           <CardContent>
-            <form key={selected.key} className="space-y-4" onSubmit={handleSubmit}>
+            <form key={`${selected.key}-${editing?.id ?? 'new'}`} className="space-y-4" onSubmit={handleSubmit}>
               {selected.fields.map((item) => (
                 item.type === 'boolean' ? (
                   <label key={item.name} className="flex items-center gap-3 rounded-xl border border-border px-3 py-3 text-sm">
-                    <input name={item.name} type="checkbox" defaultChecked={item.checked} className="size-4 accent-primary" />
+                    <input
+                      name={item.name}
+                      type="checkbox"
+                      defaultChecked={editing ? Boolean(editing[item.name]) : item.checked}
+                      className="size-4 accent-primary"
+                    />
                     {item.label}
                   </label>
                 ) : (
@@ -352,20 +411,35 @@ export function AdminDashboard() {
                       type={item.type}
                       required={!item.optional}
                       step={item.type === 'number' ? 'any' : undefined}
+                      defaultValue={editing ? defaultFor(editing[item.name]) : undefined}
                     />
                   </div>
                 )
               ))}
-              <Button type="submit" className="w-full" disabled={saving}>
-                {saving ? <LoaderCircle className="size-4 animate-spin" /> : <Plus className="size-4" />}
-                {saving ? 'Salvando...' : 'Cadastrar registro'}
-              </Button>
+              <div className="flex gap-2">
+                <Button type="submit" className="flex-1" disabled={saving}>
+                  {saving ? <LoaderCircle className="size-4 animate-spin" /> : editing ? <Pencil className="size-4" /> : <Plus className="size-4" />}
+                  {saving ? 'Salvando...' : editing ? 'Salvar alterações' : 'Cadastrar registro'}
+                </Button>
+                {editing && (
+                  <Button type="button" variant="outline" onClick={() => setEditing(null)}>
+                    <X className="size-4" /> Cancelar
+                  </Button>
+                )}
+              </div>
             </form>
           </CardContent>
         </Card>
       </div>
     </div>
   )
+}
+
+function defaultFor(value: Row[string]): string | undefined {
+  if (value === null || value === undefined) {
+    return undefined
+  }
+  return String(value)
 }
 
 function display(value: Row[string]) {
